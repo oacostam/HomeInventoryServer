@@ -1,0 +1,96 @@
+﻿var express = require('express');
+var router = express.Router();
+var mongoose = require('mongoose');
+var test = require('../models/product');
+var product = mongoose.model('product');
+
+router.delete('/:code', function(req, res){
+    product.findById(req.params.code, function (err, p) {
+        if(p){
+            p.remove(function (err) {
+                if (!err) {
+                    console.log("product removed");
+                    //Ok
+                    res.status = 204;
+                    return res.send('');
+                }else{
+                    console.log(err); 
+                    //Error
+                    res.status = 500;
+                    return res.send(''); 
+                }
+                
+            });
+        }
+        //Not found
+        res.status = 404;
+        return res.send('');
+    });
+});
+
+/* Update Product by id. */
+router.put('/:code', function(req, res) {
+    return product.findById(req.params.code, function (err, p) {
+        p.name = req.body.name;
+        p.barcode = req.body.barcode;
+        p.modifiedOn = new Date();
+        return product.save(function (err, p) {
+            if (!err) {
+                console.log("product updated");
+                res.status = 200;
+                return res.send(p);
+            } 
+            console.log(err);
+        });
+    });
+});
+
+/* Get product by id. */
+router.get('/:code', function(req, res) {
+    console.log('finding product ' + req.params.code);
+    product.findById(req.params.code, function (err, p) {
+    debugger;
+    if (!err && p) {
+        if(p !== null){
+            console.log('product ' + req.params.code + ' not found');
+            res.status = 404;
+            return res.send('');
+        }
+        return res.send(p);
+    }else{
+        console.log(err);
+        res.status = 500;
+        res.send('');
+    }
+  });
+});
+
+/* GET products listing. */
+router.get('/', function(req, res) {
+    return product.find(function(err, p){
+        if(err){
+            console.log(err);
+            return;
+        }
+        res.send(p);
+    });
+});
+
+
+/* Post new product. */
+router.post('/', function(req, res) {
+    console.log(req.body);
+    var p = new product({
+        name : req.body.name,
+        barcode : req.body.barcode
+    });
+    product.save(function (err) {
+    if (!err) {
+      return console.log("product created");
+    } 
+    return console.log(err);
+  });
+  return res.send(p);
+});
+
+module.exports = router;
