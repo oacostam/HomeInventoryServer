@@ -1,13 +1,13 @@
 var mongoose = require('mongoose');
 
 exports.productSchema = new mongoose.Schema({
-    name: String,
-    createdOn: { type: Date, 'default': Date.now },
-    modifiedOn: { type: Date, default: Date.now },
+    name: {String, required: true},
+    createdOn: { type: Date, 'default': Date.now, required: true },
+    modifiedOn: { type: Date, default: Date.now, required: true },
     createdBy: String,
-    barcode: String,
+    barcode: {String, required: true},
     categories: [String],
     picture : Buffer,
-    isActive: Boolean,
-    currentAmount : Number
+    isActive: {Boolean, 'default': true, required: true},
+    currentAmount : {Number, 'default' : 0}
 });
