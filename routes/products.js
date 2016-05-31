@@ -30,22 +30,40 @@ router.delete('/:barcode', function(req, res){
 
 /* Update Product by id. */
 router.put('/:barcode', function(req, res) {
-    return db.product.findOne({barcode: req.params.barcode}, function (err, p) {
+    db.product.findOne({barcode: req.params.barcode}, function (err, p) {
+      debugger;
+      if(err){
+        console.log(err);
+        res.status = 500;
+        return res.send(new Error(err));
+      }
+      if(p){
+        debugger;
         p.name = req.body.name;
-        p.barcode = req.params.barcode;
+        p.currentAmount = req.body.currentAmount;
+        p.isActive = req.body.isActive;
+        p.categories = req.body.categories;
+        p.picture = req.body.picture;
         p.modifiedOn = new Date();
-        return db.product.save(function (err, p) {
-            if (!err) {
-                console.log("product updated");
-                res.status = 200;
-                return res.send(p);
-            }else{
-              //Not found
-              res.status = 404;
-              return res.send(new Error('Not found'));
-            }
+        p.save(function (err, p) {
+          debugger;
+          if(err){
             console.log(err);
+            //Not found
+            res.status = 500;
+            return res.send(new Error(err));
+          }else{
+            console.log("product updated");
+            res.status = 200;
+            return res.send(p);
+          }
         });
+      }else{
+        console.log(err);
+        //Not found
+        res.status = 404;
+        return res.send(new Error('Not found'));
+      }
     });
 });
 
@@ -61,8 +79,7 @@ router.get('/:barcode', function(req, res) {
         return res.send(p);
       }else{
         console.log('product ' + req.params.barcode + ' not found');
-        res.status = 404;
-        return res.send(new Error('Not found.'));
+        return res.send(new db.product({barcode: req.params.barcode}));
       }
   });
 });
@@ -84,18 +101,24 @@ router.get('/', function(req, res) {
 /* Post new db.product. */
 router.post('/', function(req, res) {
     console.log(req.body);
-    var p = new product({
+    var p = new db.product({
         name : req.body.name,
-        barcode : req.body.barcode
+        barcode : req.body.barcode,
+        isActive : true,
+        currentAmount : req.body.currentAmount ? req.body.currentAmount : 0,
+        categories : req.body.categories,
+        picture : req.body.picture
     });
-    db.product.save(function (err) {
-    if (err) {
-      console.log(err);
-      res.status = 500;
-      return res.send(new Error(err)); 
-    }
+    p.save(function (err) {
+      debugger;
+      if (err) {
+        console.log(err);
+        res.status = 500;
+        return res.send(new Error(err)); 
+      }else{
+        return res.send(p);
+      }
   });
-  return res.send(p);
 });
 
 module.exports = router;

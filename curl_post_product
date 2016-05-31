@@ -1,0 +1,1 @@
+curl -H "Content-Type: application/json" -X POST -d '{"name": "test product", "barcode": "1234", "isActive": true, "currentAmount": 0, "_id": "5749b018f3e402171ac93d73", "categories": [0], "modifiedOn": "2016-05-28T14:50:00.594Z", "createdOn": "2016-05-28T14:50:00.275Z" }'  http://localhost:3000/products
