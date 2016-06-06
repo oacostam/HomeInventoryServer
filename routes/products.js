@@ -5,40 +5,42 @@ var db = require('../models/db');
 
 router.delete('/:barcode', function(req, res){
     db.product.findOne({barcode: req.params.barcode}, function (err, p) {
-        if(p){
-            p.remove(function (err) {
-                if (!err) {
-                    console.log("product removed");
-                    //Ok
-                    res.status = 204;
-                    return res.send('');
-                }else{
-                    console.log(err); 
-                    //Error
-                    res.status = 500;
-                    return res.send(new Error(err)); 
-                }
-                
-            });
+      if(err){
+        console.log(err);
+        res.status = 500;
+        return res.send(new Error(err));
+      }
+      if(!p){
+        //Not found
+        res.status = 404;
+        return res.send(new Error('Not found'));
+      }
+      p.remove(function (err) {
+        if (!err) {
+          console.log("product removed");
+          //Ok
+          res.status = 204;
+          return res.send('');
         }else{
-          //Not found
-          res.status = 404;
-          return res.send(new Error('Not found'));
+          if(err){
+            console.log(err);
+            res.status = 500;
+            return res.send(new Error(err));
+          }
         }
     });
+   });
 });
 
 /* Update Product by id. */
 router.put('/:barcode', function(req, res) {
     db.product.findOne({barcode: req.params.barcode}, function (err, p) {
-      debugger;
       if(err){
         console.log(err);
         res.status = 500;
         return res.send(new Error(err));
       }
       if(p){
-        debugger;
         p.name = req.body.name;
         p.currentAmount = req.body.currentAmount;
         p.isActive = req.body.isActive;
@@ -46,7 +48,6 @@ router.put('/:barcode', function(req, res) {
         p.picture = req.body.picture;
         p.modifiedOn = new Date();
         p.save(function (err, p) {
-          debugger;
           if(err){
             console.log(err);
             //Not found
@@ -86,14 +87,17 @@ router.get('/:barcode', function(req, res) {
 
 /* GET products listing. */
 router.get('/', function(req, res) {
-    return db.product.find(function(err, p){
-        if(err){
-            console.log(err);
-            //Error
-            res.status = 500;
-            return res.send(new Error(err)); 
-        }
-        res.send(p);
+  var page = req.query.page || 1;
+  //var start = req.query.start;
+  var limit = req.query.limit || 1;
+  db.product.paginate({}, { page: page, limit: limit }, function(err, p){
+     if(err){
+        console.log(err);
+        //Error
+        res.status = 500;
+        return res.send(new Error(err)); 
+      }
+      return res.send(p);
     });
 });
 

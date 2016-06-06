@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
+var mongoosePaginate = require('mongoose-paginate');
 
-exports.productSchema = new mongoose.Schema({
+var schema = new mongoose.Schema({
     name: {type: String, required: true},
     createdOn: { type: Date, 'default': Date.now, required: true },
     modifiedOn: { type: Date, default: Date.now, required: true },
@@ -11,3 +12,7 @@ exports.productSchema = new mongoose.Schema({
     isActive: {type: Boolean, 'default': true, required: true},
     currentAmount : {type: Number, 'default' : 0}
 });
+
+schema.plugin(mongoosePaginate);
+
+exports.productSchema = schema;
