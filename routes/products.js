@@ -90,7 +90,13 @@ router.get('/', function(req, res) {
   var page = req.query.page || 1;
   //var start = req.query.start;
   var limit = req.query.limit || 1;
-  db.product.paginate({}, { page: page, limit: limit }, function(err, p){
+  debugger;
+  var filter = eval(req.query.filter);
+  var query = {};
+  for(var i=0; i<filter.length; i++){
+    query[filter[i].property] = filter[i].value;
+  }
+  db.product.paginate(query, { page: page, limit: limit }, function(err, p){
      if(err){
         console.log(err);
         //Error
@@ -113,6 +119,11 @@ router.post('/', function(req, res) {
         categories : req.body.categories,
         picture : req.body.picture
     });
+    var error = p.validateSync();
+    if(error.errors){
+        res.status = 500;
+        return res.send(new Error('Invalid data')); 
+    }
     p.save(function (err) {
       debugger;
       if (err) {
