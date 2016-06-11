@@ -9,11 +9,17 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
+var restResponse = require('express-rest-response');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var products = require('./routes/products');
 
 var app = express();
+var restOptions = {
+  showStatusCode: true,  
+  showDefaultMessage: true  
+};
+app.use(restResponse(restOptions));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

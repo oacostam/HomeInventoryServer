@@ -3,7 +3,7 @@ var mongoose = require( 'mongoose' );
 var product = require('./product');
 
 // Build the connection string
-var dbURI = 'mongodb://homeinventoryuser:HomeInventoryPass@ds036709.mlab.com:36709/homeinventory';
+var dbURI = 'mongodb://homeinventoryuser:HomeInventoryPass@ds040888.mlab.com:40888/homeinventory';
 
 // Create the database connectionp
 mongoose.connect(dbURI);

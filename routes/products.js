@@ -3,29 +3,27 @@ var router = express.Router();
 var db = require('../models/db');
 
 
-router.delete('/:barcode', function(req, res){
+router.delete('/:barcode', function(req, res, next){
     db.product.findOne({barcode: req.params.barcode}, function (err, p) {
       if(err){
         console.log(err);
-        res.status = 500;
-        return res.send(new Error(err));
+        // HTTP 500
+        return res.rest.serverError(err);
       }
       if(!p){
-        //Not found
-        res.status = 404;
-        return res.send(new Error('Not found'));
+        //HTTP 404 Not found
+        return res.rest.notFound('Not found');
       }
       p.remove(function (err) {
         if (!err) {
           console.log("product removed");
-          //Ok
-          res.status = 204;
-          return res.send('');
+          // 204 No content
+          return res.rest.noContent('');
         }else{
           if(err){
             console.log(err);
-            res.status = 500;
-            return res.send(new Error(err));
+            // HTTP 500
+            return res.rest.serverError(err);
           }
         }
     });
@@ -33,65 +31,61 @@ router.delete('/:barcode', function(req, res){
 });
 
 /* Update Product by id. */
-router.put('/:barcode', function(req, res) {
+router.put('/:barcode', function(req, res, next) {
     db.product.findOne({barcode: req.params.barcode}, function (err, p) {
       if(err){
         console.log(err);
-        res.status = 500;
-        return res.send(new Error(err));
+        // HTTP 500
+        return res.rest.serverError(err);
       }
       if(p){
         p.name = req.body.name;
-        p.currentAmount = req.body.currentAmount;
-        p.isActive = req.body.isActive;
-        p.categories = req.body.categories;
-        p.picture = req.body.picture;
+        p.currentAmount = req.body.currentAmount || 0;
+        p.isActive = req.body.isActive || true;
+        p.categories = req.body.categories || null;
+        p.picture = req.body.picture || null;
         p.modifiedOn = new Date();
         p.save(function (err, p) {
           if(err){
             console.log(err);
-            //Not found
-            res.status = 500;
-            return res.send(new Error(err));
+            // HTTP 500
+            return res.rest.serverError(err);
           }else{
             console.log("product updated");
-            res.status = 200;
-            return res.send(p);
+            return res.rest.success(p);
           }
         });
       }else{
         console.log(err);
-        //Not found
-        res.status = 404;
-        return res.send(new Error('Not found'));
+        //HTTP 404 Not found
+        return res.rest.notFound('Not found');
       }
     });
 });
 
 /* Get product by id. */
-router.get('/:barcode', function(req, res) {
+router.get('/:barcode', function(req, res, next) {
     console.log('finding product ' + req.params.barcode);
     db.product.findOne({barcode: req.params.barcode}, function (err, p) {
       if(err){
-        res.status = 500;
-        return res.send(new Error(err));
+        // HTTP 500
+        return res.rest.serverError(err);
       }
       if (p) {
-        return res.send(p);
+        return res.rest.success(p);
       }else{
         console.log('product ' + req.params.barcode + ' not found');
-        return res.send(new db.product({barcode: req.params.barcode}));
+        return res.rest.success(new db.product({barcode: req.params.barcode}));
       }
   });
 });
 
 /* GET products listing. */
-router.get('/', function(req, res) {
+router.get('/', function(req, res, next) {
   var page = req.query.page || 1;
   //var start = req.query.start;
-  var limit = req.query.limit || 1;
-  debugger;
-  var filter = eval(req.query.filter);
+  var limit = req.query.limit || 20;
+  var filter = JSON.parse(req.query.filter);
   var query = {};
   for(var i=0; i<filter.length; i++){
     query[filter[i].property] = filter[i].value;
@@ -99,39 +93,37 @@ router.get('/', function(req, res) {
   db.product.paginate(query, { page: page, limit: limit }, function(err, p){
      if(err){
         console.log(err);
-        //Error
-        res.status = 500;
-        return res.send(new Error(err)); 
+        // HTTP 500
+        return res.rest.serverError(err);
       }
-      return res.send(p);
+      return res.rest.success(p);
     });
 });
 
 
 /* Post new db.product. */
-router.post('/', function(req, res) {
+router.post('/', function(req, res, next) {
     console.log(req.body);
     var p = new db.product({
         name : req.body.name,
         barcode : req.body.barcode,
         isActive : true,
-        currentAmount : req.body.currentAmount ? req.body.currentAmount : 0,
+        currentAmount : req.body.currentAmount || 0,
         categories : req.body.categories,
         picture : req.body.picture
     });
     var error = p.validateSync();
-    if(error.errors){
-        res.status = 500;
-        return res.send(new Error('Invalid data')); 
+    if(error && error.errors){
+      // HTTP 400
+      return res.rest.badRequest('Invalid data'); 
     }
     p.save(function (err) {
-      debugger;
       if (err) {
         console.log(err);
-        res.status = 500;
-        return res.send(new Error(err)); 
+        // HTTP 500
+        return res.rest.serverError(err.errmsg);
       }else{
-        return res.send(p);
+        return res.rest.success(p);
       }
   });
 });
